@@ -6,7 +6,7 @@ const swaggerDocument = YAML.load("./DOC-API.yaml");
 
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-const port = process.env.port || 3000;
+const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
