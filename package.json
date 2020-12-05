@@ -1,0 +1,29 @@
+{
+  "name": "ipl_pfe_2020_api_doc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon -e yaml,js .",
+    "web": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexismch/IPL_PFE_2020_API_DOC.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexismch/IPL_PFE_2020_API_DOC/issues"
+  },
+  "homepage": "https://github.com/alexismch/IPL_PFE_2020_API_DOC#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "swagger-ui-express": "^4.1.5",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  }
+}

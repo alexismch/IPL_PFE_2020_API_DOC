@@ -1,0 +1,361 @@
+openapi: 3.0.0
+info:
+  description: Documentation for the BlockCovid API
+  version: 1-oas3
+  title: BlockCovid API
+tags:
+  - name: public
+    description: Accessible for everyone
+  - name: doctors
+    description: Require a token with type "doctor"
+  - name: institutions
+    description: Require a token with type "institution"
+  - name: citizens
+    description: Require a token with type "citizen"
+paths:
+  /doctors:
+    post:
+      tags:
+        - public
+      summary: Create a new doctor
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Doctor"
+        description: The doctor to create.
+        required: true
+      responses:
+        "201":
+          description: Created & session returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "409":
+          description: Email or inami already used
+        "422":
+          description: Body content missing or incorrect
+        default:
+          description: Unexecpected Error
+  /institutions:
+    post:
+      tags:
+        - public
+      summary: Creates a new institution.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Institution"
+        description: The institution to create.
+        required: true
+      responses:
+        "201":
+          description: Created & session returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "409":
+          description: Email or name already used
+        "422":
+          description: Body content missing or incorrect
+        default:
+          description: Unexecpected Error
+  /citizens:
+    post:
+      tags:
+        - public
+      summary: >-
+        Creates a new citizen or returns the citizen that matches with the
+        device.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Citizen"
+        description: The citizen to create.
+      responses:
+        "201":
+          description: Created & session returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CitizenReturned"
+        default:
+          description: Unexecpected Error
+  /institutions/session:
+    post:
+      tags:
+        - public
+      summary: Creates a session for the institution
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Connectable"
+        description: The institution to which create a session.
+        required: true
+      responses:
+        "200":
+          description: Session returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "401":
+          description: Body incorrect content
+        "422":
+          description: Body content missing or incorrect
+        default:
+          description: Unexecpected Error
+  /locations:
+    post:
+      tags:
+        - institutions
+        - doctors
+      summary: Create a location for the institution
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Location"
+        description: The location to create.
+        required: true
+      responses:
+        "201":
+          description: Location created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocationReturned"
+        "401":
+          description: Wrong user type
+        "403":
+          description: No session provided
+        "409":
+          description: Locatiion's name already used for this institution
+        "422":
+          description: Content missing or incorrect || or || Incorrect institution id
+        "498":
+          description: Session invalid or expired
+        default:
+          description: Unexpected Error
+    get:
+      tags:
+        - institutions
+        - doctors
+      summary: Get locations of the institution
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LocationReturned"
+        "201":
+          description: No location
+        "401":
+          description: Wrong user type
+        "403":
+          description: No session provided
+        "498":
+          description: Session invalid or expired
+        default:
+          description: Unexpected Error
+  "/doctors/{id}/public":
+    get:
+      tags:
+        - public
+      summary: Get doctor public details
+      parameters:
+        - in: path
+          name: id
+          description: Doctor id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Return requested doctor public details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DoctorPublicDetails"
+        "404":
+          description: The requested QR Code does not exist or has been deleted
+        default:
+          description: Unexecpected Error
+  "/locations/{id}":
+    get:
+      tags:
+        - public
+      summary: Get location details
+      parameters:
+        - in: path
+          name: id
+          description: Location id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Return requested location details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocationDetails"
+        "404":
+          description: The requested QR Code does not exist or has been deleted
+        default:
+          description: Unexecpected Error
+servers:
+  - url: "https://ipl-pfe-2020-dev.herokuapp.com/api"
+components:
+  schemas:
+    Doctor:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: Jean
+        lastName:
+          type: string
+          example: Toubib
+        email:
+          type: string
+          example: jean.toubib@doctor.com
+        password:
+          type: string
+          example: JeanToubibPasswd
+        inami:
+          type: string
+          example: JeanToubibInami
+    Institution:
+      type: object
+      properties:
+        name:
+          type: string
+          example: MyInstitute
+        email:
+          type: string
+          example: contact@my-institure.com
+        password:
+          type: string
+          example: MyInstitutePasswd
+        "no":
+          type: string
+          format: '^(\s*?\.*?-*?)(\d\s*\.*-*){10}$'
+          example: 0544.944.416
+    Connectable:
+      type: object
+      properties:
+        email:
+          type: string
+          example: mail@mail.com
+        password:
+          type: string
+          example: password
+    Session:
+      type: object
+      properties:
+        session:
+          type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZG9jdG9ycyIsImlkIjoiNWZjOGU0NDg5OTU2ODEwMDE1NWIxNWUyIiwiaWF0IjoxNjA3MDAxMTYwLCJleHAiOjE2MDcwODe1NjB9.6Jr818rxRtSb7KwB18KCcRknQO_bULHv3q2molEyhvc
+    Location:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Restaurant
+        description:
+          type: string
+          example: My Institute's restaurant
+    LocationReturned:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Restaurant
+        description:
+          type: string
+          example: My Institute's restaurant
+        qrCodeToken:
+          type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoibG9jYXRpb25zIiwibG9jYXRpbd4iOiI1ZmM5MDM0ODZiMTIyMjE1YTA0NWU0NWQiLCJpYXQiOjE2MDcwMDkwOTZ9.Q9J7cBbl_mb4htA__UeW6IWnC1peyQi_3c-BoNtxe28
+        id:
+          type: string
+          example: 5fc8cb2d1915c8079861c223
+        institution:
+          type: string
+          example: 5fc903486bd22215a045e45d
+    Citizen:
+      type: object
+      properties:
+        device:
+          type: string
+          example: android-4d3eafebdfea34b7
+    CitizenReturned:
+      type: object
+      properties:
+        device:
+          type: string
+          example: android-4d3eafebdfea34b7
+        id:
+          type: string
+          example: 5fc8ed98e314730fb616f5c3
+    DoctorPublicDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "5fc8cb2d1915c8079861c223"
+        firstName:
+          type: string
+          example: Jean
+        lastName:
+          type: string
+          example: Dupond
+    LocationDetails:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "5fc8cb2d1915c8079861c223"
+        name:
+          type: string
+          example: Bosphorus
+        description:
+          type: string
+          example: Snack Bosphorus, one of the best snack in Brussels
+        ownerName:
+          type: string
+          example: Bospho's brothers
+
+  securitySchemes:
+    BearerTokenAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OK
+
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
