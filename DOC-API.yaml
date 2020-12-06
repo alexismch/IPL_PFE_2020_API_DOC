@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Documentation for the BlockCovid API
-  version: 1-oas3
+  version: 1.2
   title: BlockCovid API
 tags:
   - name: public
@@ -13,6 +13,31 @@ tags:
   - name: citizens
     description: Require a token with type "citizen"
 paths:
+  /authenticate:
+    post:
+      tags:
+        - public
+      summary: Retrieve a new access token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Connectable"
+        description: This route should be use by doctors and institutions to retrieve a token needed for accessing restricted route
+        required: true
+      responses:
+        "200":
+          description: Token returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenObject"
+        "401":
+          description: email or password invalid
+        "422":
+          $ref: "#/components/responses/UnprocessableEntityError"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
   /doctors:
     post:
       tags:
@@ -23,7 +48,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Doctor"
-        description: The doctor to create.
+        description: The doctor to create
         required: true
       responses:
         "201":
@@ -31,18 +56,63 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
+                $ref: "#/components/schemas/TokenObject"
         "409":
-          description: Email or inami already used
+          description: Email or INAMI already used
         "422":
-          description: Body content missing or incorrect
+          $ref: "#/components/responses/UnprocessableEntityError"
         default:
-          description: Unexecpected Error
+          $ref: "#/components/responses/UnexpectedError"
+  /doctors/me:
+    get:
+      tags:
+        - doctors
+      summary: Get private details for the current authenticated doctor
+      responses:
+        "200":
+          description: Doctor private details returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DoctorPrivateReturned"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+  "/doctors/{id}":
+    get:
+      tags:
+        - doctors
+        - institutions
+        - citizens
+      summary: Get doctor details
+      parameters:
+        - in: path
+          name: id
+          description: Doctor id
+          required: true
+          schema:
+            $ref: "#/components/schemas/Id"
+      responses:
+        "200":
+          description: Doctor details returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DoctorReturned"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          description: The requested doctor does not exist or has been deleted
+        default:
+          $ref: "#/components/responses/UnexpectedError"
   /institutions:
     post:
       tags:
         - public
-      summary: Creates a new institution.
+      summary: Create a new institution
       requestBody:
         content:
           application/json:
@@ -56,26 +126,40 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
+                $ref: "#/components/schemas/TokenObject"
         "409":
-          description: Email or name already used
+          description: Email or institution number already used
         "422":
-          description: Body content missing or incorrect
+          $ref: "#/components/responses/UnprocessableEntityError"
         default:
-          description: Unexecpected Error
+          $ref: "#/components/responses/UnexpectedError"
+  /institutions/me:
+    get:
+      tags:
+        - institutions
+      summary: Get private details for the current authenticated institution
+      responses:
+        "200":
+          description: Institution private details returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionPrivateReturned"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
   /citizens:
     post:
       tags:
         - public
-      summary: >-
-        Creates a new citizen or returns the citizen that matches with the
-        device.
+      summary: Create a new citizen or return the citizen that matches with the device
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/Citizen"
-        description: The citizen to create.
+        description: The citizen to create
       responses:
         "201":
           description: Created & session returned
@@ -84,50 +168,41 @@ paths:
               schema:
                 $ref: "#/components/schemas/CitizenReturned"
         default:
-          description: Unexecpected Error
-  /institutions/session:
-    post:
+          $ref: "#/components/responses/UnexpectedError"
+  /locations:
+    get:
       tags:
-        - public
-      summary: Creates a session for the institution
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Connectable"
-        description: The institution to which create a session.
-        required: true
+        - institutions
+        - doctors
+      summary: Get locations of the institution or doctor
+      security:
+        - BearerTokenAuth: []
       responses:
         "200":
-          description: Session returned
+          description: Locations returned
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
+                type: array
+                items:
+                  $ref: "#/components/schemas/LocationReturned"
         "401":
-          description: Body incorrect content
-        "422":
-          description: Body content missing or incorrect
+          $ref: "#/components/responses/UnauthorizedError"
         default:
-          description: Unexecpected Error
-  /locations:
+          $ref: "#/components/responses/UnexpectedError"
     post:
       tags:
         - institutions
         - doctors
-      summary: Create a location for the institution
-      parameters:
-        - in: header
-          name: Authorization
-          required: true
-          schema:
-            type: string
+      summary: Create a location for the institution or doctor
+      security:
+        - BearerTokenAuth: []
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/Location"
-        description: The location to create.
+        description: The location to create
         required: true
       responses:
         "201":
@@ -137,74 +212,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/LocationReturned"
         "401":
-          description: Wrong user type
-        "403":
-          description: No session provided
+          $ref: "#/components/responses/UnauthorizedError"
         "409":
-          description: Locatiion's name already used for this institution
+          description: location's name already used for this institution or doctor
         "422":
-          description: Content missing or incorrect || or || Incorrect institution id
-        "498":
-          description: Session invalid or expired
+          $ref: "#/components/responses/UnprocessableEntityError"
         default:
-          description: Unexpected Error
-    get:
-      tags:
-        - institutions
-        - doctors
-      summary: Get locations of the institution
-      parameters:
-        - in: header
-          name: Authorization
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Locations
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/LocationReturned"
-        "201":
-          description: No location
-        "401":
-          description: Wrong user type
-        "403":
-          description: No session provided
-        "498":
-          description: Session invalid or expired
-        default:
-          description: Unexpected Error
-  "/doctors/{id}/public":
-    get:
-      tags:
-        - public
-      summary: Get doctor public details
-      parameters:
-        - in: path
-          name: id
-          description: Doctor id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Return requested doctor public details
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DoctorPublicDetails"
-        "404":
-          description: The requested QR Code does not exist or has been deleted
-        default:
-          description: Unexecpected Error
+          $ref: "#/components/responses/UnexpectedError"
   "/locations/{id}":
     get:
       tags:
-        - public
+        - doctors
+        - institutions
+        - citizens
       summary: Get location details
       parameters:
         - in: path
@@ -212,22 +232,107 @@ paths:
           description: Location id
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/Id"
       responses:
         "200":
-          description: Return requested location details
+          description: Location details returned
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LocationDetails"
+                $ref: "#/components/schemas/LocationReturned"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
         "404":
-          description: The requested QR Code does not exist or has been deleted
+          description: The requested location does not exist or has been deleted
         default:
-          description: Unexecpected Error
+          $ref: "#/components/responses/UnexpectedError"
+  /history:
+    get:
+      tags:
+        - citizens
+      summary: Get history for the current authenticated user
+      security:
+        - BearerTokenAuth: []
+      responses:
+        "200":
+          description: Successfully returned
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of history entries
+                items:
+                  $ref: "#/components/schemas/HistoryEntryReturned"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+    post:
+      tags:
+        - citizens
+      summary: Add a new entry in QR Code scans history
+      security:
+        - BearerTokenAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HistoryEntry"
+        description: An new history entry
+        required: true
+      responses:
+        "201":
+          description: A new entry has been created in the history of the citizen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryEntryReturned"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          description: The id does not correspond to an existing doctor nor a institution
+        "422":
+          $ref: "#/components/responses/UnprocessableEntityError"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
 servers:
   - url: "https://ipl-pfe-2020-dev.herokuapp.com/api"
 components:
   schemas:
+    Citizen:
+      type: object
+      properties:
+        device:
+          type: string
+          example: android-4d3eafebdfea34b7
+    CitizenReturned:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        device:
+          type: string
+          example: android-4d3eafebdfea34b7
+      required:
+        - id
+    Connectable:
+      type: object
+      properties:
+        email:
+          type: string
+          example: mail@mail.com
+        password:
+          type: string
+          example: password
+      required:
+        - email
+        - password
+    Date:
+      type: string
+      description: Date formatted as \"YYYY-MM-DDTHH:mm:ssZ\"
+      example: "2020-12-06T00:34:42Z"
     Doctor:
       type: object
       properties:
@@ -246,6 +351,96 @@ components:
         inami:
           type: string
           example: JeanToubibInami
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+        - inami
+    DoctorHistoryEntryReturned:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        type:
+          type: string
+          enum:
+            - doctor
+        scanDate:
+          $ref: "#/components/schemas/Date"
+        firstName:
+          type: string
+          example: Paul
+        lastName:
+          type: string
+          example: Dupond
+      required:
+        - id
+        - type
+        - scanDate
+        - firstName
+        - lastName
+    DoctorPrivateReturned:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        firstName:
+          type: string
+          example: Jean
+        lastName:
+          type: string
+          example: Toubib
+        email:
+          type: string
+          example: jean.toubib@doctor.com
+        inami:
+          type: string
+          example: JeanToubibInami
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - inami
+    DoctorReturned:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        firstName:
+          type: string
+          example: Jean
+        lastName:
+          type: string
+          example: Dupond
+      required:
+        - id
+        - firstName
+        - lastName
+    HistoryEntry:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        type:
+          type: string
+          enum:
+            - doctor
+            - institution
+        scanDate:
+          $ref: "#/components/schemas/Date"
+      required:
+        - type
+        - id
+        - scanDate
+    HistoryEntryReturned:
+      oneOf:
+        - $ref: "#/components/schemas/DoctorHistoryEntryReturned"
+        - $ref: "#/components/schemas/LocationHistoryEntryReturned"
+    Id:
+      type: string
+      example: "5fc8cb2d1915c8079861c223"
     Institution:
       type: object
       properties:
@@ -262,22 +457,31 @@ components:
           type: string
           format: '^(\s*?\.*?-*?)(\d\s*\.*-*){10}$'
           example: 0544.944.416
-    Connectable:
+      required:
+        - name
+        - email
+        - password
+        - "no"
+    InstitutionPrivateReturned:
       type: object
       properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        name:
+          type: string
+          example: MyInstitute
         email:
           type: string
-          example: mail@mail.com
-        password:
+          example: contact@my-institure.com
+        "no":
           type: string
-          example: password
-    Session:
-      type: object
-      properties:
-        session:
-          type: string
-          example: >-
-            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZG9jdG9ycyIsImlkIjoiNWZjOGU0NDg5OTU2ODEwMDE1NWIxNWUyIiwiaWF0IjoxNjA3MDAxMTYwLCJleHAiOjE2MDcwODe1NjB9.6Jr818rxRtSb7KwB18KCcRknQO_bULHv3q2molEyhvc
+          format: '^(\s*?\.*?-*?)(\d\s*\.*-*){10}$'
+          example: 0544.944.416
+      required:
+        - id
+        - name
+        - email
+        - "no"
     Location:
       type: object
       properties:
@@ -287,58 +491,20 @@ components:
         description:
           type: string
           example: My Institute's restaurant
-    LocationReturned:
+      required:
+        - name
+        - description
+    LocationHistoryEntryReturned:
       type: object
       properties:
-        name:
+        type:
           type: string
-          example: Restaurant
-        description:
-          type: string
-          example: My Institute's restaurant
-        qrCodeToken:
-          type: string
-          example: >-
-            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoibG9jYXRpb25zIiwibG9jYXRpbd4iOiI1ZmM5MDM0ODZiMTIyMjE1YTA0NWU0NWQiLCJpYXQiOjE2MDcwMDkwOTZ9.Q9J7cBbl_mb4htA__UeW6IWnC1peyQi_3c-BoNtxe28
+          enum:
+            - institution
         id:
-          type: string
-          example: 5fc8cb2d1915c8079861c223
-        institution:
-          type: string
-          example: 5fc903486bd22215a045e45d
-    Citizen:
-      type: object
-      properties:
-        device:
-          type: string
-          example: android-4d3eafebdfea34b7
-    CitizenReturned:
-      type: object
-      properties:
-        device:
-          type: string
-          example: android-4d3eafebdfea34b7
-        id:
-          type: string
-          example: 5fc8ed98e314730fb616f5c3
-    DoctorPublicDetails:
-      type: object
-      properties:
-        id:
-          type: string
-          example: "5fc8cb2d1915c8079861c223"
-        firstName:
-          type: string
-          example: Jean
-        lastName:
-          type: string
-          example: Dupond
-    LocationDetails:
-      type: object
-      properties:
-        id:
-          type: string
-          example: "5fc8cb2d1915c8079861c223"
+          $ref: "#/components/schemas/Id"
+        scanDate:
+          $ref: "#/components/schemas/Date"
         name:
           type: string
           example: Bosphorus
@@ -348,14 +514,65 @@ components:
         ownerName:
           type: string
           example: Bospho's brothers
+      required:
+        - type
+        - id
+        - scanDate
+        - name
+        - description
+        - ownerName
+    LocationReturned:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Restaurant
+        description:
+          type: string
+          example: My Institute's restaurant
+        id:
+          $ref: "#/components/schemas/Id"
+        owner_id:
+          type: string
+          example: 5fc903486bd22215a045e45d
+        owner_name:
+          type: string
+          example: My Institute
+      required:
+        - name
+        - description
+        - id
+        - owner_id
+        - owner_name
+    TokenObject:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZG9jdG9ycyIsImlkIjoiNWZjOGU0NDg5OTU2ODEwMDE1NWIxNWUyIiwiaWF0IjoxNjA3MDAxMTYwLCJleHAiOjE2MDcwODe1NjB9.6Jr818rxRtSb7KwB18KCcRknQO_bULHv3q2molEyhvc
+        type:
+          type: string
+          enum:
+            - doctor
+            - institution
+            - citizen
+      required:
+        - token
+        - type
 
   securitySchemes:
     BearerTokenAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: OK
+      description: "Bearer authentication. The client must send this token in the Authorization header when making requests to protected resources.\n<br/>\n<br/>Authorization: Bearer &#x3C;token&#x3E;"
 
   responses:
+    BadRequestError:
+      description: The request syntax is incorrect
     UnauthorizedError:
       description: Access token is missing or invalid
+    UnprocessableEntityError:
+      description: One of the required field is missing or incorrect
+    UnexpectedError:
+      description: Unexpected Error
