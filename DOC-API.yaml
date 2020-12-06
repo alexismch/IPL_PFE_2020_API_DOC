@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Documentation for the BlockCovid API
-  version: 1.2
+  version: "1.2"
   title: BlockCovid API
 tags:
   - name: public
