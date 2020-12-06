@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Documentation for the BlockCovid API
-  version: "1.3"
+  version: "1.4"
   title: BlockCovid API
 tags:
   - name: public
@@ -256,7 +256,7 @@ paths:
           description: The requested location does not exist or has been deleted
         default:
           $ref: "#/components/responses/UnexpectedError"
-  /history:
+  /citizens/history:
     get:
       tags:
         - citizens
