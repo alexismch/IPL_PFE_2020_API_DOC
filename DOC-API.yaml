@@ -173,6 +173,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CitizenReturned"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntityError"
         default:
           $ref: "#/components/responses/UnexpectedError"
   /locations:
@@ -315,6 +317,11 @@ components:
         device:
           type: string
           example: android-4d3eafebdfea34b7
+        notifToken:
+          type: string
+          example: epxR-mvbRDKuaIUI0a9-sD:APA91bFHopq8Xe0UGTIHerdw5rpze4jYeyhgMXSBAVi28rVJ1UXekNoC1h5SLMsEOi5HlWw95j6zKZQQ4eat-yK0wDbYCB-BIom7Q7aoleWDS7swFlcvuC3B6HB2MvdpANU6Jmpq0Nmj
+      required:
+        - notifToken
     CitizenReturned:
       type: object
       properties:
