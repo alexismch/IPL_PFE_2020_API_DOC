@@ -172,7 +172,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CitizenReturned"
+                $ref: "#/components/schemas/TokenObject"
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
         default:
