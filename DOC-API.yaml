@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Documentation for the BlockCovid API
-  version: "1.4"
+  version: "1.5"
   title: BlockCovid API
 tags:
   - name: public
@@ -526,7 +526,7 @@ components:
         description:
           type: string
           example: Snack Bosphorus, one of the best snack in Brussels
-        ownerName:
+        owner_name:
           type: string
           example: Bospho's brothers
       required:
@@ -535,7 +535,7 @@ components:
         - scanDate
         - name
         - description
-        - ownerName
+        - owner_name
     LocationReturned:
       type: object
       properties:
