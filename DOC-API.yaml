@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Documentation for the BlockCovid API
-  version: "1.5"
+  version: "1.6"
   title: BlockCovid API
 tags:
   - name: public
@@ -173,8 +173,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TokenObject"
-        "422":
-          $ref: "#/components/responses/UnprocessableEntityError"
         default:
           $ref: "#/components/responses/UnexpectedError"
   /locations:
@@ -320,8 +318,6 @@ components:
         notifToken:
           type: string
           example: epxR-mvbRDKuaIUI0a9-sD:APA91bFHopq8Xe0UGTIHerdw5rpze4jYeyhgMXSBAVi28rVJ1UXekNoC1h5SLMsEOi5HlWw95j6zKZQQ4eat-yK0wDbYCB-BIom7Q7aoleWDS7swFlcvuC3B6HB2MvdpANU6Jmpq0Nmj
-      required:
-        - notifToken
     CitizenReturned:
       type: object
       properties:
