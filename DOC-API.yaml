@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Documentation for the BlockCovid API
-  version: "1.6"
+  version: "1.7"
   title: BlockCovid API
 tags:
   - name: public
@@ -379,18 +379,18 @@ components:
             - doctor
         scanDate:
           $ref: "#/components/schemas/Date"
-        firstName:
+        doctor_firstName:
           type: string
           example: Paul
-        lastName:
+        doctor_lastName:
           type: string
           example: Dupond
       required:
         - id
         - type
         - scanDate
-        - firstName
-        - lastName
+        - doctor_firstName
+        - doctor_lastName
     DoctorPrivateReturned:
       type: object
       properties:
@@ -516,10 +516,10 @@ components:
           $ref: "#/components/schemas/Id"
         scanDate:
           $ref: "#/components/schemas/Date"
-        name:
+        location_name:
           type: string
           example: Bosphorus
-        description:
+        location_description:
           type: string
           example: Snack Bosphorus, one of the best snack in Brussels
         owner_name:
@@ -529,8 +529,8 @@ components:
         - type
         - id
         - scanDate
-        - name
-        - description
+        - location_name
+        - location_description
         - owner_name
     LocationReturned:
       type: object
