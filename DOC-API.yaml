@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Documentation for the BlockCovid API
-  version: "1.7"
+  version: "1.8"
   title: BlockCovid API
 tags:
   - name: public
@@ -342,8 +342,8 @@ components:
         - password
     Date:
       type: string
-      description: Date formatted as \"YYYY-MM-DDTHH:mm:ssZ\"
-      example: "2020-12-06T00:34:42Z"
+      description: Date formatted as \"YYYY-MM-DDTHH:mm:ss.sssZ\"
+      example: "2020-12-06T00:34:42.000Z"
     Doctor:
       type: object
       properties:
