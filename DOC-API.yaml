@@ -544,8 +544,7 @@ components:
         id:
           $ref: "#/components/schemas/Id"
         owner_id:
-          type: string
-          example: 5fc903486bd22215a045e45d
+          $ref: "#/components/schemas/Id"
         owner_name:
           type: string
           example: My Institute
