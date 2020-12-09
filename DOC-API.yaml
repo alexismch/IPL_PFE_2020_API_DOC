@@ -36,7 +36,7 @@ paths:
           description: email or password invalid
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   /doctors:
     post:
@@ -61,7 +61,7 @@ paths:
           description: Email or INAMI already used
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   /doctors/me:
     get:
@@ -79,7 +79,7 @@ paths:
                 $ref: "#/components/schemas/DoctorPrivateReturned"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   "/doctors/{id}":
     get:
@@ -110,7 +110,7 @@ paths:
           $ref: "#/components/responses/UnauthorizedError"
         "404":
           description: The requested doctor does not exist or has been deleted
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   /institutions:
     post:
@@ -135,7 +135,7 @@ paths:
           description: Email or institution number already used
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   /institutions/me:
     get:
@@ -153,7 +153,7 @@ paths:
                 $ref: "#/components/schemas/InstitutionPrivateReturned"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   /citizens:
     post:
@@ -167,13 +167,19 @@ paths:
               $ref: "#/components/schemas/Citizen"
         description: The citizen to create
       responses:
+        "200":
+          description: Session returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenObject"
         "201":
           description: Created & session returned
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/TokenObject"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   /locations:
     get:
@@ -194,7 +200,7 @@ paths:
                   $ref: "#/components/schemas/LocationReturned"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
     post:
       tags:
@@ -223,7 +229,7 @@ paths:
           description: location's name already used for this institution or doctor
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   "/locations/{id}":
     get:
@@ -254,7 +260,7 @@ paths:
           $ref: "#/components/responses/UnauthorizedError"
         "404":
           description: The requested location does not exist or has been deleted
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
   /citizens/history:
     get:
@@ -275,7 +281,7 @@ paths:
                   $ref: "#/components/schemas/HistoryEntryReturned"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
     post:
       tags:
@@ -303,7 +309,7 @@ paths:
           description: The id does not correspond to an existing doctor nor a institution
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
-        default:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 servers:
   - url: "https://ipl-pfe-2020-dev.herokuapp.com/api"
