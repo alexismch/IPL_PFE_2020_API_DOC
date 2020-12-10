@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: Documentation for the BlockCovid API
-  version: "1.8"
+  version: "1.9"
   title: BlockCovid API
 tags:
   - name: public
@@ -37,7 +37,7 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   /doctors:
     post:
       tags:
@@ -62,7 +62,7 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   /doctors/me:
     get:
       tags:
@@ -80,7 +80,7 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   "/doctors/{id}":
     get:
       tags:
@@ -111,7 +111,7 @@ paths:
         "404":
           description: The requested doctor does not exist or has been deleted
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   /institutions:
     post:
       tags:
@@ -136,7 +136,7 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   /institutions/me:
     get:
       tags:
@@ -154,7 +154,7 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   /citizens:
     post:
       tags:
@@ -180,7 +180,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/TokenObject"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   /locations:
     get:
       tags:
@@ -201,7 +201,7 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
     post:
       tags:
         - institutions
@@ -230,7 +230,7 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   "/locations/{id}":
     get:
       tags:
@@ -261,7 +261,7 @@ paths:
         "404":
           description: The requested location does not exist or has been deleted
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
   /citizens/history:
     get:
       tags:
@@ -282,7 +282,7 @@ paths:
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
     post:
       tags:
         - citizens
@@ -310,7 +310,27 @@ paths:
         "422":
           $ref: "#/components/responses/UnprocessableEntityError"
         "5XX":
-          $ref: "#/components/responses/UnexpectedError"
+          $ref: "#/components/responses/UnexpectedServerError"
+  /citizens/notifications:
+    get:
+      tags:
+        - citizens
+      summary: Get citizen notifications
+      security:
+        - BearerTokenAuth: []
+      responses:
+        "200":
+          description: A list of notifications is returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationReturned"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedServerError"
 servers:
   - url: "https://ipl-pfe-2020-dev.herokuapp.com/api"
 components:
@@ -321,7 +341,7 @@ components:
         device:
           type: string
           example: android-4d3eafebdfea34b7
-        notifToken:
+        fcmToken:
           type: string
           example: epxR-mvbRDKuaIUI0a9-sD:APA91bFHopq8Xe0UGTIHerdw5rpze4jYeyhgMXSBAVi28rVJ1UXekNoC1h5SLMsEOi5HlWw95j6zKZQQ4eat-yK0wDbYCB-BIom7Q7aoleWDS7swFlcvuC3B6HB2MvdpANU6Jmpq0Nmj
     CitizenReturned:
@@ -402,24 +422,24 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/Id"
-        firstName:
+        doctor_firstName:
           type: string
           example: Jean
-        lastName:
+        doctor_lastName:
           type: string
           example: Toubib
         email:
           type: string
           example: jean.toubib@doctor.com
-        inami:
+        doctor_inami:
           type: string
           example: JeanToubibInami
       required:
         - id
-        - firstName
-        - lastName
+        - doctor_firstName
+        - doctor_lastName
         - email
-        - inami
+        - doctor_inami
     DoctorReturned:
       type: object
       properties:
@@ -484,21 +504,21 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/Id"
-        name:
+        institution_name:
           type: string
           example: MyInstitute
         email:
           type: string
           example: contact@my-institure.com
-        "no":
+        institution_no:
           type: string
           format: '^(\s*?\.*?-*?)(\d\s*\.*-*){10}$'
           example: 0544.944.416
       required:
         - id
-        - name
+        - institution_name
         - email
-        - "no"
+        - institution_no
     Location:
       type: object
       properties:
@@ -560,6 +580,23 @@ components:
         - id
         - owner_id
         - owner_name
+    NotificationReturned:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        citizen_id:
+          $ref: "#/components/schemas/Id"
+        message:
+          type: string
+          example: Alert you have been in contact
+        date:
+          $ref: "#/components/schemas/Date"
+      required:
+        - id
+        - citizen_id
+        - message
+        - date
     TokenObject:
       type: object
       properties:
@@ -590,5 +627,5 @@ components:
       description: Access token is missing or invalid
     UnprocessableEntityError:
       description: One of the required field is missing or incorrect
-    UnexpectedError:
-      description: Unexpected Error
+    UnexpectedServerError:
+      description: Unexpected Server Error
